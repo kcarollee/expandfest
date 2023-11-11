@@ -18,7 +18,7 @@ void main(){
   if (flipY) uv.y = 1.0 - uv.y;
   vec3 texCol = texture2D(tex, uv).rgb;
   float g = sin(texCol.r * sinDensity + time);
-  if (texCol.r < 0.05) outCol = vec3(.0);
+  if (texCol.r < 0.05) discard;
   else outCol = vec3(g);
   gl_FragColor = vec4(outCol, 1.0);
 }

@@ -1,9 +1,15 @@
 
 function preload(){
-  firstPassShader = loadShader('blurShader.vert', 'blurShader.frag');
-  secondPassShader = loadShader('blurShader.vert', 'blurShader.frag');
-  sinePassShader = loadShader('sineShader.vert', 'sineShader.frag');
-  font = loadFont('helvetica.ttf');
+  firstPassShader = loadShader('./assets/shaders/blurShader.vert', './assets/shaders/blurShader.frag');
+  secondPassShader = loadShader('./assets/shaders/blurShader.vert', './assets/shaders/blurShader.frag');
+  sinePassShader = loadShader('./assets/shaders/sineShader.vert', './assets/shaders/sineShader.frag');
+  font = loadFont('./assets/fonts/helvetica.ttf');
+
+  bgImgArr = [];
+  for (let i = 0; i < 1; i++){
+    let bgImg = loadImage('./assets/images/bgImages/bg' + (i)  + '.png');
+    bgImgArr.push(bgImg);
+  }
 }
 
 function setup(){
@@ -31,11 +37,14 @@ function setup(){
     weightOffsets.push([offsetX[i], offsetY[i]]);
   }
 
-  
+  //background
+  dim = max(width, height);
+  dimScale = 1.0;
+  posOffset = 0;
 }
 
 function draw(){
-  background(220);
+  background(0);
   
   firstPassCanvas.shader(firstPassShader);
   firstPassShader.setUniform('resolution', [width, height]);
@@ -57,6 +66,7 @@ function draw(){
   secondPassShader.setUniform('isSecondPass', true);
   secondPassCanvas.rect(0, 0, 50, 50);
 
+  sinePassCanvas.clear();
   sinePassCanvas.shader(sinePassShader);
   sinePassShader.setUniform('resolution', [width, height]);
   sinePassShader.setUniform('tex', secondPassCanvas);
@@ -65,10 +75,21 @@ function draw(){
   sinePassShader.setUniform('sinDensity', 100);
   sinePassCanvas.rect(0, 0, 50, 50);
 
-  image(sinePassCanvas, 0, 0, width, height);
-  image(textCanvas,  0, 0, width * 0.25, height * 0.25);
-
  
+  if (frameCount % 60 == 0){
+    dimScale = random(1.0, 3.0);
+    posOffset = random(0, dim * dimScale - dim);
+  }
+
+  push();
+  translate(-posOffset, -posOffset);
+  //rotate(frameCount * 0.01);
+  image(bgImgArr[0], 0, 0, dim * dimScale, dim * dimScale);
+  pop();
+
+  image(sinePassCanvas, 0, 0, width, height);
+  //image(textCanvas,  0, 0, width * 0.25, height * 0.25);
+
 }
 
 function windowResized(){
@@ -108,12 +129,13 @@ function resetTextCanvas(){
     textCanvas.textSize(windowHeight * 0.4);
     textCanvas.text("EXP&", textCanvas.width * 0.5, textCanvas.height * 0.5);
   }
+
+  dim = max(windowWidth, windowHeight);
 }
 
 function checkForMobile(){
   let isMobile = /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
   if (isMobile){
-    console.log("HEY");
     pixelDensity(0.75);
     textCanvas.pixelDensity(0.75);
     firstPassCanvas.pixelDensity(0.75);
