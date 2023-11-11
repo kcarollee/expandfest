@@ -1,4 +1,3 @@
-const { text } = require("express");
 
 function preload(){
   firstPassShader = loadShader('blurShader.vert', 'blurShader.frag');
@@ -9,7 +8,7 @@ function preload(){
 
 function setup(){
   console.log(offsetX);
-
+  
   createCanvas(windowWidth, windowHeight);
 
   firstPassCanvas = createGraphics(windowWidth, windowHeight, WEBGL);
@@ -22,7 +21,7 @@ function setup(){
   smooth();
 
   textCanvas = createGraphics(windowWidth, windowHeight);
-  
+  checkForMobile();
   resetTextCanvas();
   // blur shader uniforms
   numSamples = 129;
@@ -32,7 +31,7 @@ function setup(){
     weightOffsets.push([offsetX[i], offsetY[i]]);
   }
 
-  checkForMobile();
+  
 }
 
 function draw(){
@@ -68,6 +67,8 @@ function draw(){
 
   image(sinePassCanvas, 0, 0, width, height);
   image(textCanvas,  0, 0, width * 0.25, height * 0.25);
+
+ 
 }
 
 function windowResized(){
@@ -87,7 +88,7 @@ function resetTextCanvas(){
   textCanvas.fill(255);
 
   if (windowWidth < windowHeight){
-    let boundaryX = 0.1 * windowWidth;
+    let boundaryX = 0.15 * windowWidth;
     let w = (windowWidth - 2 * boundaryX) * 0.25;
 
     let boundaryY = 0.2 * windowHeight;
@@ -95,7 +96,7 @@ function resetTextCanvas(){
 
     let str = 'EXP&';
 
-    textCanvas.textSize(windowHeight * 0.4);
+    textCanvas.textSize(windowHeight * 0.3);
     for (let i = 0; i < 4; i++){
       let posX = boundaryX + w * 0.5 * (2 * i + 1);
       let posY = boundaryY + h * 0.5 * (2 * i + 1);
@@ -113,10 +114,10 @@ function checkForMobile(){
   let isMobile = /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
   if (isMobile){
     console.log("HEY");
-    pixelDensity(0.5);
-    textCanvas.pixelDensity(0.5);
-    firstPassCanvas.pixelDensity(0.5);
-    secondPassCanvas.pixelDensity(0.5);
-    sinePassCanvas.pixelDensity(0.5);
+    pixelDensity(0.75);
+    textCanvas.pixelDensity(0.75);
+    firstPassCanvas.pixelDensity(0.75);
+    secondPassCanvas.pixelDensity(0.75);
+    sinePassCanvas.pixelDensity(0.75);
   }
 }
