@@ -1,3 +1,26 @@
+class MovingText{
+  constructor(posX, posY, finalSize, character){
+    this.posX = posX;
+    this.posY = posY;
+    this.curSize = 0;
+    this.finalSize = finalSize;
+    this.char = character;
+  }
+
+  display(canvas){
+    canvas.textSize(this.curSize);
+    canvas.text(this.char, this.posX, this.posY);
+  }
+
+  updateSize(){
+    if (this.curSize < this.finalSize){
+      this.curSize += 2;
+    }
+  }
+}
+
+
+
 
 function preload(){
   firstPassShader = loadShader('./assets/shaders/blurShader.vert', './assets/shaders/blurShader.frag');
@@ -13,9 +36,10 @@ function preload(){
 }
 
 function setup(){
-  console.log(offsetX);
   
-  createCanvas(windowWidth, windowHeight);
+  canvas = createCanvas(windowWidth, windowHeight);
+  canvas.position(0, 0);
+  canvas.style('z-index', -1);
 
   firstPassCanvas = createGraphics(windowWidth, windowHeight, WEBGL);
   secondPassCanvas = createGraphics(windowWidth, windowHeight, WEBGL);
@@ -27,6 +51,7 @@ function setup(){
   smooth();
 
   textCanvas = createGraphics(windowWidth, windowHeight);
+
   checkForMobile();
   resetTextCanvas();
   // blur shader uniforms
@@ -37,14 +62,37 @@ function setup(){
     weightOffsets.push([offsetX[i], offsetY[i]]);
   }
 
+  movingTextArr = [];
+
   //background
   dim = max(width, height);
   dimScale = 1.0;
   posOffset = 0;
+
+  // easing mouse
+  easeMouseX = 0;
+  easeMouseY = 0;
+
+   // get infotext
+  infoText = document.getElementById('infoText');
+
+  // get refresh button
+  refreshButton = document.getElementById('refreshButton');
+  refreshButton.addEventListener("click", refreshSketch());
+  
 }
 
 function draw(){
   background(0);
+
+  easeMouseX = lerp(easeMouseX, mouseX, 0.05);
+  easeMouseY = lerp(easeMouseY, mouseY, 0.05);
+
+  let cnv = textCanvas;
+  movingTextArr.forEach(function(movingText){
+    movingText.display(cnv);
+    movingText.updateSize();
+  })
   
   firstPassCanvas.shader(firstPassShader);
   firstPassShader.setUniform('resolution', [width, height]);
@@ -72,7 +120,7 @@ function draw(){
   sinePassShader.setUniform('tex', secondPassCanvas);
   sinePassShader.setUniform('flipY', true);
   sinePassShader.setUniform('time', frameCount * 0.2);
-  sinePassShader.setUniform('sinDensity', 100);
+  sinePassShader.setUniform('sinDensity', map((easeMouseY / windowHeight), 0, 1, 20, 100));
   sinePassCanvas.rect(0, 0, 50, 50);
 
  
@@ -141,5 +189,36 @@ function checkForMobile(){
     firstPassCanvas.pixelDensity(0.75);
     secondPassCanvas.pixelDensity(0.75);
     sinePassCanvas.pixelDensity(0.75);
+
+    infoText.innerHTML = "touch anywhere on the screen"
   }
+  else {
+    pixelDensity(1);
+    textCanvas.pixelDensity(1);
+    firstPassCanvas.pixelDensity(1);
+    secondPassCanvas.pixelDensity(1);
+    sinePassCanvas.pixelDensity(1);
+
+    infoText.innerHTML = "click anywhere on the screen"
+  }
+}
+
+
+let clickCount = 0;
+let charArr = ['E', 'X', 'P', '&'];
+function mouseClicked(){
+  let chr = charArr[clickCount % 4];
+  let tempMovingText = new MovingText(mouseX, mouseY, 
+    windowWidth < windowHeight ? windowHeight * 0.3 : windowHeight * 0.4, chr);
+  movingTextArr.push(tempMovingText);
+  clickCount++;
+  if (clickCount > 0) {
+    infoText.style.display = 'none';
+    refreshButton.style.display = 'block'
+  }
+}
+
+function refreshSketch(){
+  movingTextArr = [];
+  console.log("HUH");
 }
