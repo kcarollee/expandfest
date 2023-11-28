@@ -20,5 +20,6 @@ void main(){
   float g = sin(texCol.r * sinDensity + time);
   if (texCol.r < 0.05) discard;
   else outCol = vec3(g);
+  //outCol = vec3(step(0.7, outCol.r));
   gl_FragColor = vec4(outCol, 1.0);
 }

@@ -19,6 +19,37 @@ class MovingText{
   }
 }
 
+class MouseEllipse{
+  constructor(posX, posY, radius){
+    this.posX = posX;
+    this.posY = posY;
+    this.radius = radius;
+  }
+
+  changeScale(){
+
+  }
+
+  changePos(posX, posY){
+    this.posX = posX;
+    this.posY = posY;
+  }
+
+  mouseIsInside(){
+    if (MouseEllipse.display){
+      return dist(this.posX, this.posY, mouseX, mouseY) < this.radius;
+    }
+  }
+
+  display(canvas){
+    if (MouseEllipse.display){
+      canvas.rect(this.posX, this.posY, this.radius, this.radius); 
+    }
+  }
+}
+
+MouseEllipse.display = true;
+
 
 
 
@@ -29,8 +60,8 @@ function preload(){
   font = loadFont('./assets/fonts/helvetica.ttf');
 
   bgImgArr = [];
-  for (let i = 0; i < 1; i++){
-    let bgImg = loadImage('./assets/images/bgImages/bg' + (i)  + '.png');
+  for (let i = 0; i < 4; i++){
+    let bgImg = loadImage('./assets/images/bgImages/bg' + (i + 1)  + '.png');
     bgImgArr.push(bgImg);
   }
 }
@@ -51,7 +82,7 @@ function setup(){
   smooth();
 
   textCanvas = createGraphics(windowWidth, windowHeight);
-
+  textCanvas.rectMode(CENTER);
   checkForMobile();
   resetTextCanvas();
   // blur shader uniforms
@@ -68,6 +99,7 @@ function setup(){
   dim = max(width, height);
   dimScale = 1.0;
   posOffset = 0;
+  bgImageIndex = 0;
 
   // easing mouse
   easeMouseX = 0;
@@ -78,8 +110,20 @@ function setup(){
 
   // get refresh button
   refreshButton = document.getElementById('refreshButton');
-  refreshButton.addEventListener("click", refreshSketch());
+  //refreshButton.addEventListener("onclick", refreshSketch());
+
+  // sketch timeout 
+  timeoutThresh = 600;
+
+  gap = 0.2;
+  heightCoef = 0.92;
   
+  mouseEllipse1 = new MouseEllipse(textCanvas.width * 0.5, textCanvas.height * heightCoef, 25, 25);
+  mouseEllipse2 = new MouseEllipse(textCanvas.width * (0.5 - gap), textCanvas.height * heightCoef, 25, 25);
+  mouseEllipse3 = new MouseEllipse(textCanvas.width * (0.5 + gap), textCanvas.height * heightCoef, 25, 25);
+
+  mouseEllipseArr = [mouseEllipse2, mouseEllipse1, mouseEllipse3];
+
 }
 
 function draw(){
@@ -93,6 +137,27 @@ function draw(){
     movingText.display(cnv);
     movingText.updateSize();
   })
+
+  if (framesElapsedSinceMouseClicked == 0){
+    console.log(framesElapsedSinceMouseClicked)
+    mouseEllipseArr.forEach(function(mouseEllipse, i){
+      mouseEllipse.radius = 20 + 5 * Math.sin(frameCount * 0.1 + HALF_PI * i * 3);
+      mouseEllipse.display(cnv);
+    });
+  }
+  
+
+  for (let i = 0; i < 3; i++){
+    let me = mouseEllipseArr[i];
+    if (me.mouseIsInside()){
+      document.body.style.cursor = 'pointer';
+      break;
+    }
+    else {
+      document.body.style.cursor = 'default';
+    }
+  }
+  
   
   firstPassCanvas.shader(firstPassShader);
   firstPassShader.setUniform('resolution', [width, height]);
@@ -127,12 +192,25 @@ function draw(){
   if (frameCount % 60 == 0){
     dimScale = random(1.0, 3.0);
     posOffset = random(0, dim * dimScale - dim);
+    bgImageIndex++;
+    bgImageIndex  = bgImageIndex % 4;
+    //console.log(bgImageIndex)
   }
+
+  if (clickCount > 0){
+    framesElapsedSinceMouseClicked++;
+    if (framesElapsedSinceMouseClicked > timeoutThresh){
+      refreshSketchbyTimeOut();
+      framesElapsedSinceMouseClicked = 0;
+    }
+  }
+
+  
 
   push();
   translate(-posOffset, -posOffset);
   //rotate(frameCount * 0.01);
-  image(bgImgArr[0], 0, 0, dim * dimScale, dim * dimScale);
+  image(bgImgArr[bgImageIndex], 0, 0, dim * dimScale, dim * dimScale);
   pop();
 
   image(sinePassCanvas, 0, 0, width, height);
@@ -147,6 +225,12 @@ function windowResized(){
   sinePassCanvas.resizeCanvas(windowWidth, windowHeight);
   textCanvas.resizeCanvas(windowWidth, windowHeight);
   resetTextCanvas();
+
+  
+
+  mouseEllipse1.changePos(textCanvas.width * 0.5, textCanvas.height * heightCoef);
+  mouseEllipse2.changePos(textCanvas.width * (0.5 - gap), textCanvas.height * heightCoef);
+  mouseEllipse3.changePos(textCanvas.width * (0.5 + gap), textCanvas.height * heightCoef);
 }
 
 function resetTextCanvas(){
@@ -190,7 +274,7 @@ function checkForMobile(){
     secondPassCanvas.pixelDensity(0.75);
     sinePassCanvas.pixelDensity(0.75);
 
-    infoText.innerHTML = "touch anywhere on the screen"
+    //infoText.innerHTML = "touch anywhere on the screen"
   }
   else {
     pixelDensity(1);
@@ -199,26 +283,42 @@ function checkForMobile(){
     secondPassCanvas.pixelDensity(1);
     sinePassCanvas.pixelDensity(1);
 
-    infoText.innerHTML = "click anywhere on the screen"
+    //infoText.innerHTML = "click anywhere on the screen"
   }
 }
 
 
 let clickCount = 0;
 let charArr = ['E', 'X', 'P', '&'];
+let sketchRefreshed = false;
+let framesElapsedSinceMouseClicked = 0;
 function mouseClicked(){
-  let chr = charArr[clickCount % 4];
-  let tempMovingText = new MovingText(mouseX, mouseY, 
-    windowWidth < windowHeight ? windowHeight * 0.3 : windowHeight * 0.4, chr);
-  movingTextArr.push(tempMovingText);
-  clickCount++;
-  if (clickCount > 0) {
-    infoText.style.display = 'none';
-    refreshButton.style.display = 'block'
+  framesElapsedSinceMouseClicked = 0;
+  if (!sketchRefreshed){
+    let chr = charArr[clickCount % 4];
+    let tempMovingText = new MovingText(mouseX, mouseY, 
+      windowWidth < windowHeight ? windowHeight * 0.3 : windowHeight * 0.4, chr);
+    movingTextArr.push(tempMovingText);
+    clickCount++;
+    if (clickCount > 0) {
+      infoText.style.display = 'none';
+      refreshButton.style.display = 'block'
+    }
   }
+  else sketchRefreshed = false;
 }
 
 function refreshSketch(){
+  sketchRefreshed = true;
+  resetTextCanvas();
   movingTextArr = [];
-  console.log("HUH");
+  refreshButton.style.display = 'none';
+  infoText.style.display = 'inline-block';
+}
+
+function refreshSketchbyTimeOut(){
+  resetTextCanvas();
+  movingTextArr = [];
+  refreshButton.style.display = 'none';
+  infoText.style.display = 'inline-block';
 }

@@ -9,14 +9,40 @@
 
   </head>
   <body>
+
+    <header>
+      <h1><a href="#" style="text-decoration:none;color: white;">EXPAND FEST: REAL TIME MEDIA ART FESTIVAL</a></h1>
+      <nav id="menu">
+          <div class="menu-wrapper">
+              <a href="#">HOME</a>
+              <a href="./pages/page_about/index.html">ABOUT</a>
+              <a href="./pages/page_contestants/index.html">CONTESTANTS</a>
+              <a href="./pages/page_performers/">PERFORMERS</a>
+              <a href="./pages/page_sitemap/index.html">SITE MAP</a>
+              <a href="./pages/page_timetable/index.html">TIMETABLE</a>
+          </div>
+      </nav>
+  </header>
     
     <script src="sketch.js"></script>
-    <div style="text-align: center; margin-top: 90vh;">
+    <div style="text-align: center; margin-top: 5vh;">
       <div id="infoText" class="info-text"></div>
     </div>
 
-    <div id='refreshButton' style="text-align: center; margin-top: 90vh;display: none;">
-      <img src="assets/images/icons/refresh.png" class="refresh-button">
+    <div id='refreshButton' style="text-align: center; margin-top: 0vh;display: none;">
+      <img src="assets/images/icons/refresh.png" class="refresh-button" onclick="refreshSketch()">
     </div>
+    <script>
+      const header = document.querySelector('header');
+      const menu = document.getElementById('menu');
+
+      header.addEventListener('mouseenter', () => {
+          menu.style.display = 'block';
+      });
+
+      header.addEventListener('mouseleave', () => {
+          menu.style.display = 'none';
+      });
+    </script>
   </body>
 </html>
