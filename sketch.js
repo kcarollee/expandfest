@@ -277,11 +277,11 @@ function checkForMobile(){
     //infoText.innerHTML = "touch anywhere on the screen"
   }
   else {
-    pixelDensity(0.75);
-    textCanvas.pixelDensity(0.75);
-    firstPassCanvas.pixelDensity(0.75);
-    secondPassCanvas.pixelDensity(0.75);
-    sinePassCanvas.pixelDensity(0.75);
+    pixelDensity(1);
+    textCanvas.pixelDensity(1);
+    firstPassCanvas.pixelDensity(1);
+    secondPassCanvas.pixelDensity(1);
+    sinePassCanvas.pixelDensity(1);
 
     //infoText.innerHTML = "click anywhere on the screen"
   }

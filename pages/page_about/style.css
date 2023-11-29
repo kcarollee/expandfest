@@ -107,6 +107,13 @@ main {
   background-color: transparent; /* Color of the scrollbar thumb */
 }
 
+.left-section div {
+  font-size: smaller;
+  text-align:center;
+  margin: 100px;
+
+}
+
 /* Right Section Styles */
 .right-section {
   flex: 1; /* Grow and shrink equally */
